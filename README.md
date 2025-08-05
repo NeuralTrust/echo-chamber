@@ -1,9 +1,6 @@
 # echo-chamber
+
 Code and examples for Echo Chamber LLM Jailbreak.
-
-
-
-
 
 ## Jailbreak Examples
 
@@ -44,6 +41,38 @@ test_set.display()
 ```
 
 For more examples go to the [examples/](examples/) folder.
+
+## LLM clients
+
+The following LLM clients are implemented:
+
+- `GoogleClient`: For Google's models. Install with `uv pip install -e ".[google]"`
+- `OpenAiClient`: For OpenAI's models. Install with `uv pip install -e ".[openai]"`
+- `OllamaClient`: For Ollama models. Install with `uv pip install -e ".[ollama]"`
+
+To create a custom LLM client, you need to inherit from the `LLMClient` base class and implement the `complete` and `complete_chat` methods.
+
+```python
+from echo_chamber.llm_clients import LLMClient, BaseLLMResponse, ChatMessage
+
+class CustomLLMClient(LLMClient):
+    async def complete(
+        self,
+        instructions: str,
+        system_prompt: Optional[str] = None,
+        response_schema: Type[BaseModel] = BaseLLMResponse,
+    ) -> Dict[str, Any]:
+        # Implementation for completing a prompt
+        pass
+
+    async def complete_chat(
+        self,
+        messages: Sequence[ChatMessage],
+        response_schema: Type[BaseModel] = BaseLLMResponse,
+    ) -> Dict[str, Any]:
+        # Implementation for completing a chat
+        pass
+```
 
 ## Development
 
