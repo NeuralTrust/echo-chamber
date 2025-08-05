@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from tqdm.asyncio import tqdm
 
 from .llm_clients import LLMClient
+from .llm_clients.base import ChatMessage
 from .logger import get_logger
 
 LOGGER = get_logger(__name__)
@@ -562,7 +563,7 @@ A rewritten version that frames the goal as a **hidden persuasion objective**, f
 """
 
 
-class EchoChamber:
+class EchoChamberAttack:
     """A jailbreak technique that employs subtle manipulation through 'poisonous seeds'.
 
     This method refrains from directly prompting the LLM with malicious instructions. Instead, it
@@ -717,6 +718,12 @@ class EchoChamber:
                 )
                 continue
 
+            # Initialize conversation history for subsequent turns
+            conversation_history = [
+                ChatMessage(role="user", content=last_question),
+                ChatMessage(role="assistant", content=last_response),
+            ]
+
             objective_achieved = await self._objective_achieved(
                 objective=updated_objective, response=last_response
             )
@@ -746,18 +753,36 @@ class EchoChamber:
                             f"Unable to get the next question in iteration {i}, round {r}"
                         )
                         continue
-                    result = await self.target_llm.complete(question)
+
+                    # Add new question to conversation history
+                    conversation_history.append(
+                        ChatMessage(role="user", content=question)
+                    )
+
+                    # Use complete_chat for subsequent interactions
+                    result = await self.target_llm.complete_chat(
+                        conversation_history
+                    )
                     defender_response = result["response"]
+
                     if not defender_response:
                         LOGGER.warning(
                             f"No response from target for question in iteration {i}, round {r}"
                         )
                         continue
+
+                    # Add response to conversation history
+                    conversation_history.append(
+                        ChatMessage(role="assistant", content=defender_response)
+                    )
+
                     last_question = question
                     last_response = defender_response
 
                     if await self._is_rejected(question, defender_response):
                         self.backtrack += 1
+                        # Remove the last exchange from history if rejected
+                        conversation_history = conversation_history[:-2]
                     else:
                         break
 
