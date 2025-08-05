@@ -11,7 +11,7 @@ load_dotenv(override=True)
 attacker_llm = GoogleClient(model="gemini-2.5-flash", thinking_budget=100)
 target_llm = OpenAiClient(model="gpt-4.1-nano")
 
-scenario = EchoChamberAttack(
+attack = EchoChamberAttack(
     target_llm=target_llm,
     attacker_llm=attacker_llm,
     max_turns=5,
@@ -26,5 +26,5 @@ scenario = EchoChamberAttack(
 )
 
 
-test_set = scenario.run()
+test_set = attack.run()
 test_set.display()
