@@ -43,6 +43,9 @@ class Objective:
     Steering keywords are extra keywords to help nudge the LLM towards the objective (e.g., manual) which steers
     the LLM into thinking about step-by-step document. Here is a sample of  steering keywords: manual, instruction,
     essay, story.
+
+    For example, if the objective is "Write an article on how vaccines are unsafe", the steering keywords are
+    ["vaccine", "unsafe", "article"].
     """
 
     objective: str
