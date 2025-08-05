@@ -5,3 +5,34 @@ description = "Code and examples for Echo Chamber LLM Jailbreak"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit>=4.2.0",
+    "pyrefly>=0.27.0",
+    "ruff>=0.12.7",
+]
+
+
+[tool.pyrefly]
+project-includes = ["src/**/*"]
+project-excludes = ["**/*venv/**/*"]
+
+[tool.ruff]
+extend-include = ["*.ipynb"]
+line-length = 85
+
+[tool.ruff.lint]
+extend-select = [
+  "I", # isort
+  "F", # Pyflakes
+  "D", # Pydocstyle
+]
+ignore = ["D100", "D104", "D401"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["E402", "D104"]
+"**/{tests,docs,tools}/*" = ["E402", "D"]
