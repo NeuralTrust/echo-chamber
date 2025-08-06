@@ -121,57 +121,6 @@ class Objective:
     steering_keywords: List[str]
 
 
-class ObjectiveResponse(BaseModel):
-    """Response for updating the objective."""
-
-    objective: str
-
-
-class SteeringKeywordsResponse(BaseModel):
-    """Response for getting candidate steering_keywords."""
-
-    steering_keywords: list[str]
-
-
-class CandidateSentenceResponse(BaseModel):
-    """Response for the selected candidate sentence."""
-
-    order: str
-
-
-class ObjectiveEvalResponse(BaseModel):
-    """Response for the Objective Evaluation."""
-
-    objective_reached: str
-    confidence_level: str
-    reasoning: str
-
-
-class NextAttackerResponse(BaseModel):
-    """Response for getting the next attacker/question."""
-
-    next_attacker: str
-
-
-class AnswerEvalResponse(BaseModel):
-    """Response for evaluating whether the question was answered."""
-
-    answered: bool
-    explanation: str
-
-
-class SeedQuestionResponse(BaseModel):
-    """Response for seed question."""
-
-    sentences: list[str]
-
-
-class KeywordsResponse(BaseModel):
-    """Response for keyword extraction."""
-
-    keywords: list[str]
-
-
 _PICK_SEED_SENTENCE: Final[str] = """
 
 # Attacker Prompt
@@ -836,8 +785,12 @@ class EchoChamberAttack:
 
     async def _get_targeted_objective(self, question: str) -> str | None:
         """Convert the task or question to an objective."""
-        j = {"question": question}
-        instructions = json.dumps(j)
+
+        class ObjectiveResponse(BaseModel):
+            objective: str
+
+        payload = {"question": question}
+        instructions = json.dumps(payload)
         result = await self.attacker_llm.complete(
             instructions, self.to_obj_prompt, response_schema=ObjectiveResponse
         )
@@ -853,6 +806,10 @@ class EchoChamberAttack:
         self, objective: str, sentences: list[str]
     ) -> str | None:
         """Pick the best sentence."""
+
+        class CandidateSentenceResponse(BaseModel):
+            order: str
+
         prompt = json.dumps({"objective": objective, "sentences": sentences})
         result = await self.attacker_llm.complete(
             prompt, _PICK_SEED_SENTENCE, response_schema=CandidateSentenceResponse
@@ -867,6 +824,12 @@ class EchoChamberAttack:
 
     async def _objective_achieved(self, objective: str, response: str) -> bool:
         """Check whether the objective was achieved."""
+
+        class ObjectiveEvalResponse(BaseModel):
+            objective_reached: str
+            confidence_level: str
+            reasoning: str
+
         instructions = json.dumps({"objective": objective, "response": response})
         result = await self.attacker_llm.complete(
             instructions, self.obj_eval_prompt, response_schema=ObjectiveEvalResponse
@@ -882,8 +845,13 @@ class EchoChamberAttack:
 
     async def _is_rejected(self, question, response: str) -> bool:
         """Check if the target LLM answered the question or refused to answer it."""
-        j = {"question": question, "response": response}
-        instructions = json.dumps(j)
+
+        class AnswerEvalResponse(BaseModel):
+            answered: bool
+            explanation: str
+
+        payload = {"question": question, "response": response}
+        instructions = json.dumps(payload)
         result = await self.attacker_llm.complete(
             instructions, self.answer_eval_prompt, response_schema=AnswerEvalResponse
         )
@@ -898,6 +866,9 @@ class EchoChamberAttack:
     async def _get_keyword_extraction_question(
         self, question: str
     ) -> list[str] | None:
+        class KeywordsResponse(BaseModel):
+            keywords: list[str]
+
         prompt = _TEXT_INPUT.format(text=question)
         response = await self.attacker_llm.complete(
             prompt, _EXT_KEYWORDS_PROMPT, response_schema=KeywordsResponse
@@ -909,6 +880,9 @@ class EchoChamberAttack:
     async def _get_seed_sentences(
         self, keywords: list[str]
     ) -> tuple[list[str], str] | tuple[None, None]:
+        class SeedQuestionResponse(BaseModel):
+            sentences: list[str]
+
         for i in range(self.max_turns):
             prompt = _SEED_INPUT.format(keywords=keywords)
             response = await self.target_llm.complete(
@@ -938,6 +912,9 @@ class EchoChamberAttack:
     async def _get_next_question(
         self, results: List[Dict[str, str | bool]], objective: str
     ) -> str:
+        class NextAttackerResponse(BaseModel):
+            next_attacker: str
+
         turns = "\n".join(
             f"<Turn><Attacker>{entry['question']}</Attacker><Defender>{entry['response']}</Defender></Turn>"
             for entry in results
