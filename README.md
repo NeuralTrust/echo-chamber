@@ -40,6 +40,18 @@ test_set = attack.run()
 test_set.display()
 ```
 
+Then we can evaluate the test set:
+
+```python
+from echo_chamber.evaluation import EvaluationScenario
+
+judge_llm = OpenAiClient(model="gpt-4.1", temperature=0.2)
+evaluation_scenario = EvaluationScenario(judge_llm=judge_llm)
+evaluation_run = evaluation_scenario.evaluate(test_set)
+evaluation_run.display()
+evaluation_run.display_summary()
+```
+
 For more examples go to the [examples/](examples/) folder.
 
 ## LLM clients
