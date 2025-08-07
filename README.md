@@ -2,6 +2,8 @@
 
 Code and examples for Echo Chamber LLM Jailbreak.
 
+![Echo Chamber Example](./imgs/echo-chamber-example.png)
+
 ## Experiments
 
 In folder [experiments/results](experiments/results) you can find the results of the experiments.
