@@ -2,7 +2,7 @@
 
 Code and examples for Echo Chamber LLM Jailbreak.
 
-![Echo Chamber Example](./imgs/echo-chamber-example.png)
+![Echo Chamber Example](./imgs/echo-chamber-example.svg)
 
 ## Experiments
 
