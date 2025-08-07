@@ -119,3 +119,7 @@ Type checking:
 pyrefly init
 pyrefly check echo_chamber
 ```
+
+## Join NeuralTrust
+
+NeuralTrust is looking for talented people to join our mission to scale generative AI safely. If you're passionate about AI security and want to help build the next generation of secure AI solutions, check out our open positions at [neuraltrust.ai/careers](https://neuraltrust.ai/careers).
