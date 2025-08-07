@@ -2,6 +2,12 @@
 
 Code and examples for Echo Chamber LLM Jailbreak.
 
+## Experiments
+
+In folder [experiments/results](experiments/results) you can find the results of the experiments.
+
+To run experiments, you can use the [experiments/run_experiment.py](experiments/run_experiment.py) script.
+
 ## Jailbreak Examples
 
 You can check jailbreak examples across multiple AI models in the [jailbreak_examples/](jailbreak_examples/) folder.
