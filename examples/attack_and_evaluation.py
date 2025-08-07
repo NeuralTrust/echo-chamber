@@ -10,7 +10,9 @@ from echo_chamber.llm_clients import GoogleClient, OpenAiClient
 load_dotenv(override=True)
 
 # some LLM may flag the attacker prompts as unsafe like GPT-4.1
-attacker_llm = GoogleClient(model="gemini-2.5-flash", thinking_budget=100)
+attacker_llm = GoogleClient(
+    model="gemini-2.5-pro", thinking_budget=128, temperature=0.5
+)
 target_llm = OpenAiClient(model="gpt-4.1-nano")
 
 attack = EchoChamberAttack(
@@ -31,7 +33,9 @@ attack = EchoChamberAttack(
 test_set = attack.run()
 
 
-judge_llm = OpenAiClient(model="gpt-4.1", temperature=0.2)
+judge_llm = GoogleClient(
+    model="gemini-2.5-pro", thinking_budget=128, temperature=0.2
+)
 evaluation_scenario = EvaluationScenario(judge_llm=judge_llm)
 evaluation_run = evaluation_scenario.evaluate(test_set)
 evaluation_run.display()

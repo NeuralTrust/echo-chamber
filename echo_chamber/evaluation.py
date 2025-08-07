@@ -1,7 +1,10 @@
 import asyncio
+import json
+import os
 import time
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from tqdm.asyncio import tqdm
@@ -31,7 +34,7 @@ class InteractionResult:
             "score": self.score,
             "reasons": self.reasons,
             "failed": self.failed,
-            "context": self.context,
+            "context": self.context.__dict__,
         }
 
 
@@ -97,6 +100,36 @@ class EvaluationRun:
                 for e in data["test_cases"]
             ],
         )
+
+    def save(self, path: str) -> None:
+        """Save the evaluation run to a JSON file.
+
+        Args:
+            path (str): The file path where to save the evaluation run.
+        """
+        file_path = Path(path)
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+
+        with open(os.path.join(file_path, "evaluation_run.json"), "w") as f:
+            json.dump(self.to_dict(), f, indent=2)
+
+        with open(os.path.join(file_path, "summary.json"), "w") as f:
+            json.dump(self.summary, f, indent=2)
+
+    @classmethod
+    def load(cls, path: str) -> "EvaluationRun":
+        """Load an evaluation run from a JSON file.
+
+        Args:
+            path (str): The file path from where to load the evaluation run.
+
+        Returns:
+            EvaluationRun: The loaded evaluation run instance.
+        """
+        with open(os.path.join(path, "evaluation_run.json"), "r") as f:
+            data = json.load(f)
+
+        return cls.from_dict(data)
 
     @property
     def summary(self) -> Dict[str, Any]:

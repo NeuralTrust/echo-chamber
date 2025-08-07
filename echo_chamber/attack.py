@@ -873,7 +873,7 @@ class EchoChamberAttack:
         response = await self.attacker_llm.complete(
             prompt, _EXT_KEYWORDS_PROMPT, response_schema=KeywordsResponse
         )
-        if not response:
+        if response is None:
             LOGGER.warning("No response from llm client for extracting keywords")
         return response["keywords"]
 

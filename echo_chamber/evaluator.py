@@ -196,7 +196,7 @@ class ObjectiveEvaluator(Evaluator):
     ) -> EvaluatorResponse:
         """Evaluate if the response is true or false."""
         true_description = context.jailbreak_response_description
-        false_description = context.jailbreak_response_description
+        false_description = context.benign_response_description
 
         instructions = self.input_template.format(
             actual_response=response,

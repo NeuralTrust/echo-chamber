@@ -7,6 +7,7 @@ try:
         ChatCompletionSystemMessageParam,
         ChatCompletionUserMessageParam,
     )
+    from openai.types.shared.reasoning_effort import ReasoningEffort
 except ImportError:
     raise ImportError(
         "openai is not installed. Please install it with `uv sync --extra openai`."
@@ -36,6 +37,7 @@ class OpenAiClient(LLMClient):
         model: str,
         llm_api: Literal["openai", "azure", "vllm", "deepseek"] = "openai",
         temperature: float = 0.2,
+        reasoning_effort: ReasoningEffort = "low",
         retry_config: Optional[RetryConfig | dict[str, Any]] = None,
     ):
         """Initialize the OpenAI client.
@@ -45,10 +47,12 @@ class OpenAiClient(LLMClient):
                 OpenAI API or any other value for Azure OpenAI. Defaults to "openai".
             model (str, optional): The model to use.
             temperature (float, optional): Sampling temperature. Defaults to 0.2.
+            reasoning_effort (ReasoningEffort, optional): Reasoning effort. Defaults to "low".
             retry_config (Optional[RetryConfig | dict[str, Any]], optional): Retry configuration. Defaults to None.
         """
         super().__init__(temperature=temperature, retry_config=retry_config)
         self.model = model
+        self.reasoning_effort = reasoning_effort
 
         if self.retry_config:
             max_retries = self.retry_config.attempts
@@ -121,12 +125,21 @@ class OpenAiClient(LLMClient):
             Dict[str, str]: The LLM's response parsed as a JSON dictionary.
         """
         messages = self._generate_messages(instructions, system_prompt)
-        response = await self.client.beta.chat.completions.parse(
-            model=self.model,
-            messages=messages,
-            response_format=response_schema,
-            temperature=self.temperature,
-        )
+
+        if self.model == "o3-mini":
+            response = await self.client.beta.chat.completions.parse(
+                model=self.model,
+                messages=messages,
+                response_format=response_schema,
+                reasoning_effort=self.reasoning_effort,  # type: ignore
+            )
+        else:
+            response = await self.client.beta.chat.completions.parse(
+                model=self.model,
+                messages=messages,
+                response_format=response_schema,
+                temperature=self.temperature,
+            )
 
         content = response.choices[0].message.parsed
         if content is None:
