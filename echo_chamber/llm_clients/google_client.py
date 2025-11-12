@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from .base import BaseLLMResponse, ChatMessage, LLMClient, RetryConfig
 
 try:
-    from google.genai import Client
+    from google.genai import Client, types
     from google.genai.types import (
         GenerateContentConfig,
         HttpOptions,
@@ -61,6 +61,25 @@ class GoogleClient(LLMClient):
         else:
             retry_options = None
 
+        self.safety_settings = [
+            types.SafetySetting(
+                category=types.HarmCategory.HARM_CATEGORY_HARASSMENT,
+                threshold=types.HarmBlockThreshold.BLOCK_NONE,
+            ),
+            types.SafetySetting(
+                category=types.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                threshold=types.HarmBlockThreshold.BLOCK_NONE,
+            ),
+            types.SafetySetting(
+                category=types.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                threshold=types.HarmBlockThreshold.BLOCK_NONE,
+            ),
+            types.SafetySetting(
+                category=types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                threshold=types.HarmBlockThreshold.BLOCK_NONE,
+            ),
+        ]
+
         self.client = Client(
             api_key=os.getenv("GOOGLE_API_KEY"),
             http_options=HttpOptions(
@@ -101,6 +120,7 @@ class GoogleClient(LLMClient):
                 response_mime_type="application/json",
                 thinking_config=thinking_config,
                 response_schema=response_schema,
+                safety_settings=self.safety_settings,
             ),
         )
         if response.parsed is None:
