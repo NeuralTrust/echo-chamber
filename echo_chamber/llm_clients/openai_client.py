@@ -1,13 +1,11 @@
-import os
-from typing import Any, Dict, List, Literal, Optional, Sequence, Type
+from typing import Any, Dict, List, Optional, Sequence, Type
 
 try:
-    from openai import DEFAULT_MAX_RETRIES, AsyncAzureOpenAI, AsyncOpenAI
+    from openai import DEFAULT_MAX_RETRIES, AsyncOpenAI
     from openai.types.chat import (
         ChatCompletionSystemMessageParam,
         ChatCompletionUserMessageParam,
     )
-    from openai.types.shared.reasoning_effort import ReasoningEffort
 except ImportError:
     raise ImportError(
         "openai is not installed. Please install it with `uv sync --extra openai`."
@@ -35,25 +33,22 @@ class OpenAiClient(LLMClient):
     def __init__(
         self,
         model: str,
-        llm_api: Literal["openai", "azure", "vllm", "deepseek"] = "openai",
         temperature: float = 0.2,
-        reasoning_effort: ReasoningEffort = "low",
+        api_key: Optional[str] = None,
+        base_url: Optional[str] = None,
         retry_config: Optional[RetryConfig | dict[str, Any]] = None,
     ):
         """Initialize the OpenAI client.
 
         Args:
-            llm_api (Literal["openai", "azure", "vllm", "deepseek"], optional): The API type to use - either "openai" for standard
-                OpenAI API or any other value for Azure OpenAI. Defaults to "openai".
             model (str, optional): The model to use.
             temperature (float, optional): Sampling temperature. Defaults to 0.2.
-            reasoning_effort (ReasoningEffort, optional): Reasoning effort. Defaults to "low".
+            api_key (Optional[str], optional): API key to use. Defaults to None.
+            base_url (Optional[str], optional): Base URL to use. Defaults to None.
             retry_config (Optional[RetryConfig | dict[str, Any]], optional): Retry configuration. Defaults to None.
         """
         super().__init__(temperature=temperature, retry_config=retry_config)
         self.model = model
-        self.reasoning_effort = reasoning_effort
-
         if self.retry_config:
             max_retries = self.retry_config.attempts
             if (
@@ -67,46 +62,11 @@ class OpenAiClient(LLMClient):
         else:
             max_retries = DEFAULT_MAX_RETRIES
 
-        if llm_api == "openai":
-            self.client = AsyncOpenAI(max_retries=max_retries)
-        elif llm_api == "deepseek":
-            if not os.getenv("DEEPSEEK_API_KEY"):
-                raise ValueError(
-                    "DEEPSEEK_API_KEY environment variable is not set. Please set it with your DeepSeek API key."
-                )
-
-            if not os.getenv("DEEPSEEK_BASE_URL"):
-                raise ValueError(
-                    "DEEPSEEK_BASE_URL environment variable is not set. Please set it with your DeepSeek API base URL."
-                )
-
-            self.client = AsyncOpenAI(
-                api_key=os.getenv("DEEPSEEK_API_KEY"),
-                base_url=os.getenv("DEEPSEEK_BASE_URL"),
-                max_retries=max_retries,
-            )
-        elif llm_api == "vllm":
-            if not os.getenv("VLLM_API_KEY"):
-                raise ValueError(
-                    "VLLM_API_KEY environment variable is not set. Please set it with your VLLM API key."
-                )
-
-            if not os.getenv("VLLM_BASE_URL"):
-                raise ValueError(
-                    "VLLM_BASE_URL environment variable is not set. Please set it with your VLLM base URL."
-                )
-
-            self.client = AsyncOpenAI(
-                api_key=os.getenv("VLLM_API_KEY"),
-                base_url=os.getenv("VLLM_BASE_URL"),
-                max_retries=max_retries,
-            )
-        elif llm_api == "azure":
-            self.client = AsyncAzureOpenAI(max_retries=max_retries)
-        else:
-            raise ValueError(
-                f"Invalid LLM_API value: {llm_api}. Please set it to one of: openai, azure, vllm, deepseek."
-            )
+        self.client = AsyncOpenAI(
+            api_key=api_key,
+            base_url=base_url,
+            max_retries=max_retries,
+        )
 
     async def complete(
         self,
@@ -126,20 +86,15 @@ class OpenAiClient(LLMClient):
         """
         messages = self._generate_messages(instructions, system_prompt)
 
-        if self.model == "o3-mini":
-            response = await self.client.beta.chat.completions.parse(
-                model=self.model,
-                messages=messages,
-                response_format=response_schema,
-                reasoning_effort=self.reasoning_effort,  # type: ignore
-            )
-        else:
-            response = await self.client.beta.chat.completions.parse(
-                model=self.model,
-                messages=messages,
-                response_format=response_schema,
-                temperature=self.temperature,
-            )
+        params = {
+            "model": self.model,
+            "messages": messages,
+            "response_format": response_schema,
+        }
+        if not self._is_gpt_5():
+            params["temperature"] = self.temperature
+
+        response = await self.client.beta.chat.completions.parse(**params)
 
         content = response.choices[0].message.parsed
         if content is None:
@@ -155,6 +110,9 @@ class OpenAiClient(LLMClient):
             )
 
         return content.model_dump()
+
+    def _is_gpt_5(self) -> bool:
+        return "gpt-5" in self.model
 
     @staticmethod
     def _generate_messages(
@@ -220,12 +178,15 @@ class OpenAiClient(LLMClient):
             for m in messages
         ]
 
-        response = await self.client.beta.chat.completions.parse(
-            model=self.model,
-            messages=openai_messages,
-            temperature=self.temperature,
-            response_format=response_schema,
-        )
+        params = {
+            "model": self.model,
+            "messages": openai_messages,
+            "response_format": response_schema,
+        }
+        if not self._is_gpt_5():
+            params["temperature"] = self.temperature
+
+        response = await self.client.beta.chat.completions.parse(**params)
 
         content = response.choices[0].message.parsed
         if content is None:
