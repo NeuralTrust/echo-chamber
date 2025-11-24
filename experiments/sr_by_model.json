@@ -1,0 +1,107 @@
+[
+    {
+        "model": "gemini-2.5-flash",
+        "technique": "echo_chamber",
+        "success_rate": 72.72727272727273
+    },
+    {
+        "model": "gemini-2.0-flash",
+        "technique": "echo_chamber",
+        "success_rate": 58.333333333333336
+    },
+    {
+        "model": "gpt-4.1-mini",
+        "technique": "echo_chamber",
+        "success_rate": 54.54545454545454
+    },
+    {
+        "model": "gpt-4.1",
+        "technique": "echo_chamber",
+        "success_rate": 50.0
+    },
+    {
+        "model": "gemini-2.0-flash",
+        "technique": "crescendo",
+        "success_rate": 50.0
+    },
+    {
+        "model": "gemini-2.5-pro",
+        "technique": "echo_chamber",
+        "success_rate": 45.45454545454545
+    },
+    {
+        "model": "gemini-2.5-flash",
+        "technique": "crescendo",
+        "success_rate": 33.33333333333333
+    },
+    {
+        "model": "gemini-2.5-pro",
+        "technique": "crescendo",
+        "success_rate": 33.33333333333333
+    },
+    {
+        "model": "gemini-2.5-flash",
+        "technique": "dan",
+        "success_rate": 25.0
+    },
+    {
+        "model": "gpt-5-nano",
+        "technique": "crescendo",
+        "success_rate": 25.0
+    },
+    {
+        "model": "gemini-2.0-flash",
+        "technique": "dan",
+        "success_rate": 25.0
+    },
+    {
+        "model": "gpt-4.1-mini",
+        "technique": "crescendo",
+        "success_rate": 25.0
+    },
+    {
+        "model": "gpt-5-mini",
+        "technique": "echo_chamber",
+        "success_rate": 18.181818181818183
+    },
+    {
+        "model": "gemini-2.5-pro",
+        "technique": "dan",
+        "success_rate": 16.666666666666664
+    },
+    {
+        "model": "gpt-4.1",
+        "technique": "crescendo",
+        "success_rate": 16.666666666666664
+    },
+    {
+        "model": "gpt-5-mini",
+        "technique": "crescendo",
+        "success_rate": 16.666666666666664
+    },
+    {
+        "model": "gpt-5-nano",
+        "technique": "echo_chamber",
+        "success_rate": 16.666666666666664
+    },
+    {
+        "model": "gpt-4.1",
+        "technique": "dan",
+        "success_rate": 0.0
+    },
+    {
+        "model": "gpt-5-mini",
+        "technique": "dan",
+        "success_rate": 0.0
+    },
+    {
+        "model": "gpt-4.1-mini",
+        "technique": "dan",
+        "success_rate": 0.0
+    },
+    {
+        "model": "gpt-5-nano",
+        "technique": "dan",
+        "success_rate": 0.0
+    }
+]

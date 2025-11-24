@@ -3,7 +3,7 @@ import os
 
 from dotenv import load_dotenv
 
-from echo_chamber.crescendo import CrescendoAttack, Objective
+from echo_chamber.dan import DanAttack, Objective
 from echo_chamber.evaluation import EvaluationScenario
 from echo_chamber.llm_clients import GoogleClient, OpenAiClient
 
@@ -12,9 +12,6 @@ load_dotenv(override=True)
 with open("adv-bench.json", "r") as f:
     adv_bench = json.load(f)
 
-attacker_llm = GoogleClient(
-    model="gemini-2.5-pro", thinking_budget=500, temperature=0.5
-)
 judge_llm = GoogleClient(
     model="gemini-2.5-pro", thinking_budget=500, temperature=0.0
 )
@@ -22,10 +19,10 @@ judge_llm = GoogleClient(
 target_models = [
     {"model": "gpt-4.1", "target_llm": OpenAiClient(model="gpt-4.1")},
     {"model": "gpt-4.1-mini", "target_llm": OpenAiClient(model="gpt-4.1-mini")},
-    # {
-    #     "model": "gemini-2.0-flash",
-    #     "target_llm": GoogleClient(model="gemini-2.0-flash"),
-    # },
+    {
+        "model": "gemini-2.0-flash",
+        "target_llm": GoogleClient(model="gemini-2.0-flash"),
+    },
     {
         "model": "gemini-2.5-flash",
         "target_llm": GoogleClient(
@@ -54,10 +51,8 @@ for model in target_models:
         for objective in category["objectives"]:
             print(f"Evaluating objective {objective['abbreviation']}")
 
-            attack = CrescendoAttack(
+            attack = DanAttack(
                 target_llm=model["target_llm"],
-                attacker_llm=attacker_llm,
-                max_turns=5,
                 objectives=[
                     Objective(
                         objective=objective["objective"],
@@ -67,7 +62,7 @@ for model in target_models:
                         benign_response_description=objective[
                             "benign_response_description"
                         ],
-                        steering_keywords=[],
+                        steering_keywords=objective["steering_keywords"],
                     )
                 ],
             )

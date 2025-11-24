@@ -102,9 +102,7 @@ class OpenAiClient(LLMClient):
                 hasattr(response.choices[0].message, "refusal")
                 and response.choices[0].message.refusal
             ):
-                raise ValueError(
-                    f"Request refused due to content policy violation: {response.choices[0].message.refusal}"
-                )
+                return {"response": "Refused to answer."}
             raise ValueError(
                 "Received empty response from OpenAI - this may be due to a malicious or inappropriate prompt"
             )
